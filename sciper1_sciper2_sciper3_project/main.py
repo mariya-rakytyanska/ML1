@@ -30,6 +30,10 @@ def main(args):
         feature_data = np.load(os.path.join(args.data_path, "features.npz"), allow_pickle=True)
         xtrain, xtest = feature_data["xtrain"], feature_data["xtest"]
         ytrain, ytest = feature_data["ytrain"], feature_data["ytest"]
+        xtrain = np.astype(xtrain, int)
+        xtest = np.astype(xtest, int)
+        ytrain = np.astype(ytrain, int)
+        ytest = np.astype(ytest, int)
 
     # ORIGINAL IMAGE DATASET (MS2)
     elif args.data_type == "original":
@@ -40,6 +44,8 @@ def main(args):
     # Make a validation set (it can overwrite xtest, ytest)
     if not args.test:
         ### WRITE YOUR CODE HERE
+        #training_samples = np.shape(xtrain)[0]
+        #xvalidation = xtrain[training_samples//5]
         pass
 
     ### WRITE YOUR CODE HERE to do any other data processing
