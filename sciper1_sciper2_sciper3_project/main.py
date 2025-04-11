@@ -26,7 +26,8 @@ def main(args):
 
     # EXTRACTED FEATURES DATASET
     if args.data_type == "features":
-        feature_data = np.load("features.npz", allow_pickle=True)
+        #feature_data = np.load("features.npz", allow_pickle=True)
+        feature_data = np.load(os.path.join(args.data_path, "features.npz"), allow_pickle=True)
         xtrain, xtest = feature_data["xtrain"], feature_data["xtest"]
         ytrain, ytest = feature_data["ytrain"], feature_data["ytest"]
 
@@ -53,7 +54,16 @@ def main(args):
     if args.method == "dummy_classifier":
         method_obj = DummyClassifier(arg1=1, arg2=2)
 
-    elif ...:  ### WRITE YOUR CODE HERE
+    elif args.method == "knn":
+        method_obj = KNN(args.K)  ### WRITE YOUR CODE HERE
+        pass
+
+    elif args.method == "logistic_regression":
+        method_obj = LogisticRegression(args.lr, args.max_iters) ### WRITE YOUR CODE HERE
+        pass
+
+    elif args.method == "kmeans":
+        method_obj = KMeans(args.max_iters)  ### WRITE YOUR CODE HERE
         pass
 
     ## 4. Train and evaluate the method

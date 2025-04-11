@@ -42,11 +42,11 @@ class KNN(object):
                 test_labels (np.array): labels of shape (N,)
         """
         
-        test_labels = self.kNN(test_data, self.training_data, self.training_labels, self.k)
+        test_labels = self.kNN(test_data)
 
         return test_labels
     
-    def euclidean_dist(example, training_examples):
+    def euclidean_dist(self, example):
         """Compute the Euclidean distance between a single example
         vector and all training_examples.
 
@@ -56,9 +56,9 @@ class KNN(object):
         Outputs:
             euclidean distances: shape (N,)
         """
-        return np.sum((training_examples - example)**2, axis=1)**(1/2)
+        return np.sum((self.training_data - example)**2, axis=1)**(1/2)
     
-    def find_k_nearest_neighbors(k, distances):
+    def find_k_nearest_neighbors(self, distances):
         """ Find the indices of the k smallest distances from a list of distances.
             Tip: use np.argsort()
 
@@ -69,7 +69,7 @@ class KNN(object):
             indices of the k nearest neighbors: shape (k,)
         """
         
-        indices = np.argsort(distances)[:k]
+        indices = np.argsort(distances)[:self.k]
         return indices
     
     def predict_label(neighbor_labels):
@@ -83,7 +83,7 @@ class KNN(object):
         
         return np.argmax(np.bincount(neighbor_labels))
     
-    def kNN_one_example(self, unlabeled_example, training_features, training_labels, k):
+    def kNN_one_example(self, unlabeled_example):
         """Returns the label of a single unlabelled example.
 
         Inputs:
@@ -95,20 +95,20 @@ class KNN(object):
             predicted label
         """
         # Compute distances
-        distances = self.euclidean_dist(unlabeled_example, training_features)
+        distances = self.euclidean_dist(unlabeled_example)
         
         # Find neighbors
-        nn_indices = self.find_k_nearest_neighbors(k, distances)
+        nn_indices = self.find_k_nearest_neighbors(distances)
         
         # Get neighbors' labels
-        neighbor_labels = training_labels[nn_indices]
+        neighbor_labels = self.training_labels[nn_indices]
         
         # Pick the most common
-        best_label = self.predict_label(neighbor_labels)
+        best_label = KNN.predict_label(neighbor_labels)
         
         return best_label
     
-    def kNN(self, unlabeled, training_features, training_labels, k):
+    def kNN(self, unlabeled):
         """Return the labels vector for all unlabeled datapoints.
 
         Inputs:
@@ -119,4 +119,4 @@ class KNN(object):
         Outputs:
             predicted labels: shape (M,)
         """
-        return np.apply_along_axis(self.kNN_one_example, 1, self, unlabeled, training_features, training_labels, k)
+        return np.apply_along_axis(self.kNN_one_example, 1, unlabeled)
