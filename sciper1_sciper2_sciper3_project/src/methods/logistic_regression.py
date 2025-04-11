@@ -33,7 +33,7 @@ class LogisticRegression(object):
         """
 
         self.W = self.logistic_regression_train_multi(training_data, label_to_onehot(training_labels, get_n_classes(training_labels)))
-        pred_labels = onehot_to_label(LogisticRegression.logistic_regression_predict_multi(training_data, self.W))
+        pred_labels = LogisticRegression.logistic_regression_predict_multi(training_data, self.W)
 
         return pred_labels
 
@@ -47,7 +47,7 @@ class LogisticRegression(object):
             pred_labels (array): labels of shape (N,)
         """
 
-        pred_labels = onehot_to_label(LogisticRegression.logistic_regression_predict_multi(test_data, self.W))
+        pred_labels = LogisticRegression.logistic_regression_predict_multi(test_data, self.W)
 
         return pred_labels
 
