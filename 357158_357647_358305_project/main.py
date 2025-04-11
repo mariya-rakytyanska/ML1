@@ -30,8 +30,8 @@ def main(args):
         feature_data = np.load(os.path.join(args.data_path, "features.npz"), allow_pickle=True)
         xtrain, xtest = feature_data["xtrain"], feature_data["xtest"]
         ytrain, ytest = feature_data["ytrain"], feature_data["ytest"]
-        xtrain = np.astype(xtrain, int)
-        xtest = np.astype(xtest, int)
+        #xtrain = np.astype(xtrain, int)
+        #xtest = np.astype(xtest, int)
         ytrain = np.astype(ytrain, int)
         ytest = np.astype(ytest, int)
 
@@ -42,18 +42,34 @@ def main(args):
 
     ## 2. Then we must prepare it. This is where you can create a validation set, normalize, add bias, etc.
     # Make a validation set (it can overwrite xtest, ytest)
+    folds = 9
     if not args.test:
         ### WRITE YOUR CODE HERE
         training_samples = np.shape(xtrain)[0]
-        xvalidation = xtrain[:training_samples//10]
-        yvalidation = ytrain[:training_samples//10]
-        xtrain = xtrain[training_samples//10:]
-        ytrain = ytrain[training_samples//10:]
+        xval = np.zeros((folds, training_samples//folds, np.shape(xtrain[0])[0]+1))
+        yval = np.zeros((folds, training_samples//folds), dtype = int)
+        xtrain_mul = np.zeros((folds, training_samples - training_samples//folds, np.shape(xtrain[0])[0]+1))
+        ytrain_mul =  np.zeros((folds, training_samples - training_samples//folds), dtype = int)
+        for i in range(folds):
+            xvali = xtrain[i * (training_samples//folds) : (i+1) * (training_samples//folds)]
+            yval[i] = ytrain[i * (training_samples//folds) : (i+1) * (training_samples//folds)]
+            xtrain_muli = np.concatenate((xtrain[:i * (training_samples//folds)], xtrain[(i+1) * (training_samples//folds):]))
+            ytrain_mul[i] = np.concatenate((ytrain[:i * (training_samples//folds)], ytrain[(i+1) * (training_samples//folds):]))
 
-        val_mean = np.apply_along_axis(np.mean, 0, xvalidation)
-        val_std = np.apply_along_axis(np.std, 0, xvalidation)
-        xvalidation = normalize_fn(xvalidation, val_mean, val_std)
-        xvalidation = append_bias_term(xvalidation)
+            val_mean = np.apply_along_axis(np.mean, 0, xvali)
+            val_std = np.apply_along_axis(np.std, 0, xvali)
+            xvali = normalize_fn(xvali, val_mean, val_std)
+            xval[i] = append_bias_term(xvali)
+
+            training_mean = np.apply_along_axis(np.mean, 0, xtrain_muli)
+            training_std = np.apply_along_axis(np.std, 0, xtrain_muli)
+            xtrain_muli = normalize_fn(xtrain_muli, training_mean, training_std)
+            xtrain_mul[i] = append_bias_term(xtrain_muli)
+
+        #print(type(yval[0][0]))
+        #yval = np.astype(yval[i], int)
+        #ytrain_mul = np.astype(ytrain_mul[i], int)
+
         pass
 
     ### WRITE YOUR CODE HERE to do any other data processing
@@ -80,28 +96,37 @@ def main(args):
 
     elif args.method == "knn":
         arr = np.zeros(shape = (50,))
-        for i in range(1, 51):
-            validate = KNN(i)
-            validate.fit(xtrain, ytrain)
-            prediction = validate.predict(xvalidation)
-            acc = accuracy_fn(prediction, yvalidation)
-            arr[i-1] = acc
 
+        for i in range(1, 51):
+            for j in range(folds):
+                validate = KNN(i)
+                validate.fit(xtrain_mul[j], ytrain_mul[j])
+                prediction = validate.predict(xval[j])
+                acc = accuracy_fn(prediction, yval[j])
+                arr[i-1] = arr[i-1] + acc
+            arr[i-1] = arr[i-1] / folds
+
+        print(arr)
         K = np.argmax(arr) + 1
+        print(K)
 
         method_obj = KNN(K)  ### WRITE YOUR CODE HERE
         pass
 
     elif args.method == "logistic_regression":
         arr = np.zeros(shape = (50,))
+
         for i in range(1, 51):
-            validate = KNN(i)
-            validate.fit(xtrain, ytrain)
-            prediction = validate.predict(xvalidation)
-            acc = accuracy_fn(prediction, yvalidation)
-            arr[i-1] = acc
+            for j in range(folds):
+                validate = LogisticRegression(i, args.max_iters)
+                validate.fit(xtrain_mul[j], ytrain_mul[j])
+                prediction = validate.predict(xval[j])
+                acc = accuracy_fn(prediction, yval[j])
+                arr[i-1] = arr[i-1] + acc
+            arr[i-1] = arr[i-1] / folds
 
         lr = np.argmax(arr) + 1
+
         method_obj = LogisticRegression(lr, args.max_iters) ### WRITE YOUR CODE HERE
         pass
 
@@ -111,13 +136,11 @@ def main(args):
 
     ## 4. Train and evaluate the method
     # Fit (:=train) the method on the training data for classification task
-    xtrain = np.concatenate((xvalidation, xtrain))
-    ytrain = np.concatenate((yvalidation, ytrain))
     preds_train = method_obj.fit(xtrain, ytrain)
 
     # Predict on unseen data
     preds = method_obj.predict(xtest)
-    preds_val = method_obj.predict(xvalidation)
+    #preds_val = method_obj.predict(xvalidation)
 
     # Report results: performance on train and valid/test sets
     acc = accuracy_fn(preds_train, ytrain)
@@ -128,9 +151,9 @@ def main(args):
     macrof1 = macrof1_fn(preds, ytest)
     print(f"Test set:  accuracy = {acc:.3f}% - F1-score = {macrof1:.6f}")
 
-    acc = accuracy_fn(preds_val, yvalidation)
-    macrof1 = macrof1_fn(preds_val, yvalidation)
-    print(f"Validation set:  accuracy = {acc:.3f}% - F1-score = {macrof1:.6f}")
+    #acc = accuracy_fn(preds_val, yvalidation)
+    #macrof1 = macrof1_fn(preds_val, yvalidation)
+    #print(f"Validation set:  accuracy = {acc:.3f}% - F1-score = {macrof1:.6f}")
 
     ### WRITE YOUR CODE HERE if you want to add other outputs, visualization, etc.
 
