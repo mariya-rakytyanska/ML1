@@ -93,7 +93,16 @@ def main(args):
         pass
 
     elif args.method == "logistic_regression":
-        method_obj = LogisticRegression(args.lr, args.max_iters) ### WRITE YOUR CODE HERE
+        arr = np.zeros(shape = (50,))
+        for i in range(1, 51):
+            validate = KNN(i)
+            validate.fit(xtrain, ytrain)
+            prediction = validate.predict(xvalidation)
+            acc = accuracy_fn(prediction, yvalidation)
+            arr[i-1] = acc
+
+        lr = np.argmax(arr) + 1
+        method_obj = LogisticRegression(lr, args.max_iters) ### WRITE YOUR CODE HERE
         pass
 
     elif args.method == "kmeans":
