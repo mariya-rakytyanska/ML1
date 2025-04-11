@@ -79,10 +79,10 @@ class KMeans(object):
         Returns:
             pred_labels (np.array): labels of shape (N,)
         """
-        
+        training_labels = np.astype(training_labels,int)
             
-        arr = np.zeros(shape = (50,))
-        for i in range(1, 51):
+        arr = np.zeros(shape = (training_data.shape[0],))
+        for i in range(1, training_data.shape[0]+1):
             final_centers, cluster_assignments = self.k_means(training_data, i)
             self.assign_labels_to_centers(final_centers, cluster_assignments, training_labels)
             pred_labels = KMeans.predict(self,training_data)
