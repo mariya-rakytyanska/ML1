@@ -30,7 +30,9 @@ class KNN(object):
         self.training_data = training_data
         self.training_labels = training_labels
 
-        return training_labels
+        pred_labels = self.kNN(training_data)
+
+        return pred_labels
 
     def predict(self, test_data):
         """

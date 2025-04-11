@@ -44,11 +44,29 @@ def main(args):
     # Make a validation set (it can overwrite xtest, ytest)
     if not args.test:
         ### WRITE YOUR CODE HERE
-        #training_samples = np.shape(xtrain)[0]
-        #xvalidation = xtrain[training_samples//5]
+        training_samples = np.shape(xtrain)[0]
+        xvalidation = xtrain[:training_samples//10]
+        yvalidation = ytrain[:training_samples//10]
+        xtrain = xtrain[training_samples//10:]
+        ytrain = ytrain[training_samples//10:]
+
+        val_mean = np.apply_along_axis(np.mean, 0, xvalidation)
+        val_std = np.apply_along_axis(np.std, 0, xvalidation)
+        xvalidation = normalize_fn(xvalidation, val_mean, val_std)
+        xvalidation = append_bias_term(xvalidation)
         pass
 
     ### WRITE YOUR CODE HERE to do any other data processing
+
+    train_mean = np.apply_along_axis(np.mean, 0, xtrain)
+    test_mean = np.apply_along_axis(np.mean, 0, xtest)
+    train_std = np.apply_along_axis(np.std, 0, xtrain)
+    test_std = np.apply_along_axis(np.std, 0, xtest)
+    xtrain = normalize_fn(xtrain, train_mean, train_std)
+    xtest = normalize_fn(xtest, test_mean, test_std)
+
+    xtrain = append_bias_term(xtrain)
+    xtest = append_bias_term(xtest)
 
     ## 3. Initialize the method you want to use.
 
@@ -61,7 +79,17 @@ def main(args):
         method_obj = DummyClassifier(arg1=1, arg2=2)
 
     elif args.method == "knn":
-        method_obj = KNN(args.K)  ### WRITE YOUR CODE HERE
+        arr = np.zeros(shape = (50,))
+        for i in range(1, 51):
+            validate = KNN(i)
+            validate.fit(xtrain, ytrain)
+            prediction = validate.predict(xvalidation)
+            acc = accuracy_fn(prediction, yvalidation)
+            arr[i-1] = acc
+
+        K = np.argmax(arr) + 1
+
+        method_obj = KNN(K)  ### WRITE YOUR CODE HERE
         pass
 
     elif args.method == "logistic_regression":
@@ -74,10 +102,13 @@ def main(args):
 
     ## 4. Train and evaluate the method
     # Fit (:=train) the method on the training data for classification task
+    xtrain = np.concatenate((xvalidation, xtrain))
+    ytrain = np.concatenate((yvalidation, ytrain))
     preds_train = method_obj.fit(xtrain, ytrain)
 
     # Predict on unseen data
     preds = method_obj.predict(xtest)
+    preds_val = method_obj.predict(xvalidation)
 
     # Report results: performance on train and valid/test sets
     acc = accuracy_fn(preds_train, ytrain)
@@ -87,6 +118,10 @@ def main(args):
     acc = accuracy_fn(preds, ytest)
     macrof1 = macrof1_fn(preds, ytest)
     print(f"Test set:  accuracy = {acc:.3f}% - F1-score = {macrof1:.6f}")
+
+    acc = accuracy_fn(preds_val, yvalidation)
+    macrof1 = macrof1_fn(preds_val, yvalidation)
+    print(f"Validation set:  accuracy = {acc:.3f}% - F1-score = {macrof1:.6f}")
 
     ### WRITE YOUR CODE HERE if you want to add other outputs, visualization, etc.
 
