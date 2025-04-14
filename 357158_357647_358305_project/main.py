@@ -127,8 +127,8 @@ def main(args):
                 arr[i-1] = arr[i-1] + acc
             arr[i-1] = arr[i-1] / folds
 
-        K = np.argmax(arr) + 1
-        print(K)
+        idx = (np.abs(arr - 45)).argmin()
+        K = idx + 1
 
         method_obj = KNN(args.K)  ### WRITE YOUR CODE HERE
         pass
