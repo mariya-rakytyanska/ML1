@@ -1,4 +1,5 @@
 import numpy as np
+from src.utils import get_n_classes
 
 class KNN(object):
     """
@@ -29,6 +30,8 @@ class KNN(object):
 
         self.training_data = training_data
         self.training_labels = training_labels
+        self.weights = np.bincount(training_labels)/np.shape(training_labels)[0]
+        self.number_of_classes = get_n_classes(training_labels)
 
         pred_labels = self.kNN(training_data)
 
@@ -74,7 +77,7 @@ class KNN(object):
         indices = np.argsort(distances)[:self.k]
         return indices
     
-    def predict_label(neighbor_labels):
+    def predict_label(self, neighbor_labels):
         """Return the most frequent label in the neighbors'.
 
         Inputs:
@@ -83,7 +86,8 @@ class KNN(object):
             most frequent label
         """
         
-        return np.argmax(np.bincount(neighbor_labels))
+        weighted = np.bincount(neighbor_labels, minlength=self.number_of_classes) * self.weights
+        return np.argmax(weighted)
     
     def kNN_one_example(self, unlabeled_example):
         """Returns the label of a single unlabelled example.
@@ -106,7 +110,7 @@ class KNN(object):
         neighbor_labels = self.training_labels[nn_indices]
         
         # Pick the most common
-        best_label = KNN.predict_label(neighbor_labels)
+        best_label = self.predict_label(neighbor_labels)
         
         return best_label
     
