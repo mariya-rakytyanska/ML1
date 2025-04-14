@@ -1,4 +1,6 @@
 import numpy as np
+import scipy as scipy
+import scipy.special
 
 from ..utils import get_n_classes, label_to_onehot, onehot_to_label, accuracy_fn
 
@@ -64,9 +66,7 @@ class LogisticRegression(object):
                 The row i corresponds to the prediction of the ith data sample, and 
                 the column j to the jth class. So element [i, j] is P(y_i=k | x_i, W)
         """
-        weights = np.apply_along_axis(np.exp, 0, data @ W)
-        sum_under = np.sum(weights, axis = 1)
-        return (weights.T/sum_under).T
+        return scipy.special.softmax(data@W)
     
     def loss_logistic_multi(self, data, labels, w):
         """ 
