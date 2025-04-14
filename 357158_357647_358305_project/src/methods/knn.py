@@ -30,8 +30,8 @@ class KNN(object):
 
         self.training_data = training_data
         self.training_labels = training_labels
-        self.weights = np.bincount(training_labels)/np.shape(training_labels)[0]
         self.number_of_classes = get_n_classes(training_labels)
+        self.weights = np.ones((self.number_of_classes,)) - (np.bincount(training_labels)/np.shape(training_labels)[0])
 
         pred_labels = self.kNN(training_data)
 
@@ -86,7 +86,7 @@ class KNN(object):
             most frequent label
         """
         
-        weighted = np.bincount(neighbor_labels, minlength=self.number_of_classes) * self.weights
+        weighted = np.multiply(np.bincount(neighbor_labels, minlength=self.number_of_classes), self.weights)
         return np.argmax(weighted)
     
     def kNN_one_example(self, unlabeled_example):

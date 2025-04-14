@@ -7,7 +7,7 @@ from src.methods.dummy_methods import DummyClassifier
 from src.methods.logistic_regression import LogisticRegression
 from src.methods.knn import KNN
 from src.methods.kmeans import KMeans
-from src.utils import normalize_fn, append_bias_term, accuracy_fn, macrof1_fn, mse_fn
+from src.utils import normalize_fn, append_bias_term, accuracy_fn, macrof1_fn, mse_fn, get_n_classes
 import os
 import time 
 
@@ -31,8 +31,28 @@ def main(args):
         feature_data = np.load(os.path.join(args.data_path, "features.npz"), allow_pickle=True)
         xtrain, xtest = feature_data["xtrain"], feature_data["xtest"]
         ytrain, ytest = feature_data["ytrain"], feature_data["ytest"]
-        #xtrain = np.astype(xtrain, int)
-        #xtest = np.astype(xtest, int)
+
+       # ytrain = np.astype(ytrain, int)
+       # count = np.bincount(ytrain)
+       # to_sample = count[np.argmin(count)]
+       # samples_to_take = np.zeros((1,))
+       # for i in range(get_n_classes(ytrain)):
+       #     indices = np.zeros((1,))
+       #     counter = 0
+       #     for j in range(np.shape(ytrain)[0]):
+       #         if ytrain[j] == i:
+       #             indices = np.append(indices, j)
+       #             counter += 1
+       #     indices = indices[1:]
+       #     choices = np.random.choice(indices, size= (to_sample), replace=False)
+       #     samples_to_take = np.append(samples_to_take, choices)
+       # samples_to_take = samples_to_take[1:]
+       # permutation = np.random.permutation(samples_to_take)
+       # permutation = np.astype(permutation, int)
+#
+       # xtrain = xtrain[permutation]
+       # ytrain = ytrain[permutation]
+        
         ytrain = np.astype(ytrain, int)
         ytest = np.astype(ytest, int)
 
@@ -107,11 +127,10 @@ def main(args):
                 arr[i-1] = arr[i-1] + acc
             arr[i-1] = arr[i-1] / folds
 
-        print(arr)
         K = np.argmax(arr) + 1
         print(K)
 
-        method_obj = KNN(K)  ### WRITE YOUR CODE HERE
+        method_obj = KNN(args.K)  ### WRITE YOUR CODE HERE
         pass
 
     elif args.method == "logistic_regression":
