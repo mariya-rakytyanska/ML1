@@ -9,7 +9,6 @@ from src.methods.knn import KNN
 from src.methods.kmeans import KMeans
 from src.utils import normalize_fn, append_bias_term, accuracy_fn, macrof1_fn, mse_fn, get_n_classes
 import os
-import time 
 
 np.random.seed(100)
 
@@ -136,30 +135,20 @@ def main(args):
     elif args.method == "logistic_regression":
         arr = np.zeros(shape = (50,))
 
-        for i in range(1, 51):
+
+        for i in range(1,51):
             for j in range(folds):
-                validate = LogisticRegression(i, args.max_iters)
+                validate = LogisticRegression(i/100, args.max_iters)
                 validate.fit(xtrain_mul[j], ytrain_mul[j])
                 prediction = validate.predict(xval[j])
                 acc = accuracy_fn(prediction, yval[j])
                 arr[i-1] = arr[i-1] + acc
             arr[i-1] = arr[i-1] / folds
-        
-        arr = np.zeros(shape = (50,))
-        lr = np.argmax(arr) + 1
-
-        for i in range(1, 51):
-            for j in range(folds):
-                validate = LogisticRegression(lr, i)
-                validate.fit(xtrain_mul[j], ytrain_mul[j])
-                prediction = validate.predict(xval[j])
-                acc = accuracy_fn(prediction, yval[j])
-                arr[i-1] = arr[i-1] + acc
-            arr[i-1] = arr[i-1] / folds
-
-        max_iter = np.argmax(arr) + 1
-
-        method_obj = LogisticRegression(lr, max_iter) ### WRITE YOUR CODE HERE
+    
+        arr = np.zeros(shape = (101,))
+        lr = (np.argmax(arr) + 1)/100
+      
+        method_obj = LogisticRegression(lr, args.max_iters) ### WRITE YOUR CODE HERE
         pass
 
     elif args.method == "kmeans":
@@ -168,9 +157,8 @@ def main(args):
 
     ## 4. Train and evaluate the method
     # Fit (:=train) the method on the training data for classification task
-    before = time.time()
+    
     preds_train = method_obj.fit(xtrain, ytrain)
-    after = time.time()
 
     # Predict on unseen data
     preds = method_obj.predict(xtest)
@@ -185,7 +173,6 @@ def main(args):
     macrof1 = macrof1_fn(preds, ytest)
     print(f"Test set:  accuracy = {acc:.3f}% - F1-score = {macrof1:.6f}")
 
-    print(f"Time to fit : {after-before:.5f}")
     #acc = accuracy_fn(preds_val, yvalidation)
     #macrof1 = macrof1_fn(preds_val, yvalidation)
     #print(f"Validation set:  accuracy = {acc:.3f}% - F1-score = {macrof1:.6f}")
