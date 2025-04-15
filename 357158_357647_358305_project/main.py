@@ -127,10 +127,10 @@ def main(args):
                 arr[i-1] = arr[i-1] + acc
             arr[i-1] = arr[i-1] / folds
 
-        idx = (np.abs(arr - 45)).argmin()
+        idx = (np.abs(arr - 45.833)).argmin()
         K = idx + 1
 
-        method_obj = KNN(args.K)  ### WRITE YOUR CODE HERE
+        method_obj = KNN(K)  ### WRITE YOUR CODE HERE
         pass
 
     elif args.method == "logistic_regression":
