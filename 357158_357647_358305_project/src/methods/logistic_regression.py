@@ -66,7 +66,10 @@ class LogisticRegression(object):
                 The row i corresponds to the prediction of the ith data sample, and 
                 the column j to the jth class. So element [i, j] is P(y_i=k | x_i, W)
         """
-        return scipy.special.softmax(data@W)
+        x = data @ W
+        x = x - x.max(axis=1, keepdims=True)
+        y = np.exp(x)
+        return y / y.sum(axis=1, keepdims=True)
     
     def loss_logistic_multi(self, data, labels, w):
         """ 
