@@ -1,5 +1,6 @@
 import numpy as np
 import itertools
+from ..utils import get_n_classes
 
 
 class KMeans(object):
@@ -7,36 +8,39 @@ class KMeans(object):
     kNN classifier object.
     """
 
-    def __init__(self, max_iters=500):
+    def __init__(self, max_iters=500, K=10):
         """
         Call set_arguments function of this class.
         """
         self.max_iters = max_iters
         self.centroids = None
         self.best_permutation = None
+        self.K = K
 
-    def init_centers(self,data, K):
-        self.centroids = data[np.random.choice(data.shape[0], K, replace=False)]
+    def init_centers(self,data):
+        self.centroids = data[np.random.choice(data.shape[0], self.K, replace=False)]
         return 0
     
-    def compute_centers(self, data, cluster_assignments, K):
-        self.centroids = np.zeros((K, data.shape[1]), dtype=float)
+    def compute_centers(self, data, cluster_assignments):
+        self.centroids = np.zeros((self.K, data.shape[1]), dtype=float)
     
-        for i in range(K):
+        for i in range(self.K):
             rows = data[cluster_assignments == i]
             if rows.size > 0:
                 self.centroids[i] = rows.mean(axis = 0)
 
         return self.centroids
 
-    def k_means(self, data, K):
-        self.init_centers(data, K)
+    def k_means(self, data):
+        self.init_centers(data)
 
         for i in range(self.max_iters):
             cluster_assignments = KMeans.find_closest_cluster(self.compute_distance(data))
-            self.centroids = self.compute_centers(data, cluster_assignments, K)
+            old_centroids = self.centroids.copy()
+            self.centroids = self.compute_centers(data, cluster_assignments)
         
-            if np.all(self.centroids == self.centroids): 
+            if np.all(self.centroids == old_centroids): 
+                print(i)
                 break
             
         cluster_assignments = KMeans.find_closest_cluster(self.compute_distance(data))
@@ -58,7 +62,7 @@ class KMeans(object):
     
     def assign_labels_to_centers(self, centers, cluster_assignments, true_labels):
         K = np.shape(centers)[0]
-        self.best_permutation = np.zeros((K,),dtype=np.float64)
+        self.best_permutation = np.zeros((self.K,),dtype=np.float64)
     
         for i in range(K):
             rows = true_labels[cluster_assignments == i]
@@ -80,20 +84,19 @@ class KMeans(object):
             pred_labels (np.array): labels of shape (N,)
         """
         training_labels = np.astype(training_labels,int)
-            
-        arr = np.zeros(shape = (training_data.shape[0],))
-        for i in range(1, training_data.shape[0]+1):
-            final_centers, cluster_assignments = self.k_means(training_data, i)
-            self.assign_labels_to_centers(final_centers, cluster_assignments, training_labels)
-            pred_labels = KMeans.predict(self,training_data)
-            acc = 100*np.sum(np.equal(pred_labels, training_labels))/np.size(training_labels)
-            arr[i-1] = acc
-
-        K = np.argmax(arr) + 1
-        final_centers, cluster_assignments = self.k_means(training_data, K)
-        self.assign_labels_to_centers(final_centers, cluster_assignments, training_labels)
-        pred_labels = KMeans.predict(self,training_data)
         
+        #arr = np.zeros(shape = (training_data.shape[0],))
+        #for i in range(1, training_data.shape[0]+1):
+        #    final_centers, cluster_assignments = self.k_means(training_data, i)
+        #    self.assign_labels_to_centers(final_centers, cluster_assignments, training_labels)
+        #    pred_labels = KMeans.predict(self,training_data)
+        #    acc = 100*np.sum(np.equal(pred_labels, training_labels))/np.size(training_labels)
+        #    arr[i-1] = acc
+#
+        #K = np.argmax(arr) + 1
+        final_centers, cluster_assignments = self.k_means(training_data)
+        self.assign_labels_to_centers(final_centers, cluster_assignments, training_labels)
+        pred_labels = self.predict(training_data)
         
         return pred_labels
         

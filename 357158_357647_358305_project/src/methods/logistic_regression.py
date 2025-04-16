@@ -1,6 +1,4 @@
 import numpy as np
-import scipy as scipy
-import scipy.special
 
 from ..utils import get_n_classes, label_to_onehot, onehot_to_label, accuracy_fn
 
@@ -33,7 +31,7 @@ class LogisticRegression(object):
         Returns:
             pred_labels (array): target of shape (N,)
         """
-
+        training_labels = np.astype(training_labels, int)
         self.W = self.logistic_regression_train_multi(training_data, label_to_onehot(training_labels, get_n_classes(training_labels)))
         pred_labels = LogisticRegression.logistic_regression_predict_multi(training_data, self.W)
 
@@ -135,6 +133,7 @@ class LogisticRegression(object):
 
             predictions = LogisticRegression.logistic_regression_predict_multi(data, weights)
             if accuracy_fn(predictions, onehot_to_label(labels)) == 100:
+                print(it)
                 break
             
         return weights

@@ -1,6 +1,7 @@
 import argparse
 
 import numpy as np
+import time
 
 from src.data import load_data
 from src.methods.dummy_methods import DummyClassifier
@@ -52,8 +53,8 @@ def main(args):
        # xtrain = xtrain[permutation]
        # ytrain = ytrain[permutation]
         
-        ytrain = np.astype(ytrain, int)
-        ytest = np.astype(ytest, int)
+        #ytrain = np.astype(ytrain, int)
+        #ytest = np.astype(ytest, int)
 
     # ORIGINAL IMAGE DATASET (MS2)
     elif args.data_type == "original":
@@ -62,29 +63,37 @@ def main(args):
 
     ## 2. Then we must prepare it. This is where you can create a validation set, normalize, add bias, etc.
     # Make a validation set (it can overwrite xtest, ytest)
-    folds = 9
+    #folds = 9
     if not args.test:
         ### WRITE YOUR CODE HERE
-        training_samples = np.shape(xtrain)[0]
-        xval = np.zeros((folds, training_samples//folds, np.shape(xtrain[0])[0]+1))
-        yval = np.zeros((folds, training_samples//folds), dtype = int)
-        xtrain_mul = np.zeros((folds, training_samples - training_samples//folds, np.shape(xtrain[0])[0]+1))
-        ytrain_mul =  np.zeros((folds, training_samples - training_samples//folds), dtype = int)
-        for i in range(folds):
-            xvali = xtrain[i * (training_samples//folds) : (i+1) * (training_samples//folds)]
-            yval[i] = ytrain[i * (training_samples//folds) : (i+1) * (training_samples//folds)]
-            xtrain_muli = np.concatenate((xtrain[:i * (training_samples//folds)], xtrain[(i+1) * (training_samples//folds):]))
-            ytrain_mul[i] = np.concatenate((ytrain[:i * (training_samples//folds)], ytrain[(i+1) * (training_samples//folds):]))
+        number_of_samples = len(ytrain)
+        val_indices = np.random.permutation(number_of_samples)
 
-            val_mean = np.apply_along_axis(np.mean, 0, xvali)
-            val_std = np.apply_along_axis(np.std, 0, xvali)
-            xvali = normalize_fn(xvali, val_mean, val_std)
-            xval[i] = append_bias_term(xvali)
+        xtest = xtrain[val_indices[:number_of_samples//5]]
+        ytest = ytrain[val_indices[:number_of_samples//5]]
 
-            training_mean = np.apply_along_axis(np.mean, 0, xtrain_muli)
-            training_std = np.apply_along_axis(np.std, 0, xtrain_muli)
-            xtrain_muli = normalize_fn(xtrain_muli, training_mean, training_std)
-            xtrain_mul[i] = append_bias_term(xtrain_muli)
+        xtrain = xtrain[val_indices[number_of_samples//5:]]
+        ytrain = ytrain[val_indices[number_of_samples//5:]]
+        #training_samples = np.shape(xtrain)[0]
+        #xval = np.zeros((folds, training_samples//folds, np.shape(xtrain[0])[0]+1))
+        #yval = np.zeros((folds, training_samples//folds), dtype = int)
+        #xtrain_mul = np.zeros((folds, training_samples - training_samples//folds, np.shape(xtrain[0])[0]+1))
+        #ytrain_mul =  np.zeros((folds, training_samples - training_samples//folds), dtype = int)
+        #for i in range(folds):
+        #    xvali = xtrain[i * (training_samples//folds) : (i+1) * (training_samples//folds)]
+        #    yval[i] = ytrain[i * (training_samples//folds) : (i+1) * (training_samples//folds)]
+        #    xtrain_muli = np.concatenate((xtrain[:i * (training_samples//folds)], xtrain[(i+1) * (training_samples//folds):]))
+        #    ytrain_mul[i] = np.concatenate((ytrain[:i * (training_samples//folds)], ytrain[(i+1) * (training_samples//folds):]))
+#
+        #    val_mean = np.apply_along_axis(np.mean, 0, xvali)
+        #    val_std = np.apply_along_axis(np.std, 0, xvali)
+        #    xvali = normalize_fn(xvali, val_mean, val_std)
+        #    xval[i] = append_bias_term(xvali)
+#
+        #    training_mean = np.apply_along_axis(np.mean, 0, xtrain_muli)
+        #    training_std = np.apply_along_axis(np.std, 0, xtrain_muli)
+        #    xtrain_muli = normalize_fn(xtrain_muli, training_mean, training_std)
+        #    xtrain_mul[i] = append_bias_term(xtrain_muli)
 
         #print(type(yval[0][0]))
         #yval = np.astype(yval[i], int)
@@ -95,13 +104,13 @@ def main(args):
     ### WRITE YOUR CODE HERE to do any other data processing
 
     train_mean = np.apply_along_axis(np.mean, 0, xtrain)
-    test_mean = np.apply_along_axis(np.mean, 0, xtest)
     train_std = np.apply_along_axis(np.std, 0, xtrain)
-    test_std = np.apply_along_axis(np.std, 0, xtest)
     xtrain = normalize_fn(xtrain, train_mean, train_std)
-    xtest = normalize_fn(xtest, test_mean, test_std)
-
     xtrain = append_bias_term(xtrain)
+
+    test_mean = np.apply_along_axis(np.mean, 0, xtest)
+    test_std = np.apply_along_axis(np.std, 0, xtest)
+    xtest = normalize_fn(xtest, test_mean, test_std)
     xtest = append_bias_term(xtest)
 
     ## 3. Initialize the method you want to use.
@@ -115,53 +124,55 @@ def main(args):
         method_obj = DummyClassifier(arg1=1, arg2=2)
 
     elif args.method == "knn":
-        arr = np.zeros(shape = (50,))
+        #arr = np.zeros(shape = (50,))
+#
+        #for i in range(1, 51):
+        #    for j in range(folds):
+        #        validate = KNN(i)
+        #        validate.fit(xtrain_mul[j], ytrain_mul[j])
+        #        prediction = validate.predict(xval[j])
+        #        acc = accuracy_fn(prediction, yval[j])
+        #        arr[i-1] = arr[i-1] + acc
+        #    arr[i-1] = arr[i-1] / folds
+#
+        #idx = (np.abs(arr - 45.833)).argmin()
+        #K = idx + 1
 
-        for i in range(1, 51):
-            for j in range(folds):
-                validate = KNN(i)
-                validate.fit(xtrain_mul[j], ytrain_mul[j])
-                prediction = validate.predict(xval[j])
-                acc = accuracy_fn(prediction, yval[j])
-                arr[i-1] = arr[i-1] + acc
-            arr[i-1] = arr[i-1] / folds
-
-        idx = (np.abs(arr - 45.833)).argmin()
-        K = idx + 1
-
-        method_obj = KNN(K)  ### WRITE YOUR CODE HERE
+        method_obj = KNN(args.K)  ### WRITE YOUR CODE HERE
         pass
 
     elif args.method == "logistic_regression":
-        arr = np.zeros(shape = (50,))
-
-
-        for i in range(1,51):
-            for j in range(folds):
-                validate = LogisticRegression(i/100, args.max_iters)
-                validate.fit(xtrain_mul[j], ytrain_mul[j])
-                prediction = validate.predict(xval[j])
-                acc = accuracy_fn(prediction, yval[j])
-                arr[i-1] = arr[i-1] + acc
-            arr[i-1] = arr[i-1] / folds
-    
-        arr = np.zeros(shape = (101,))
-        lr = (np.argmax(arr) + 1)/100
-      
-        method_obj = LogisticRegression(lr, args.max_iters) ### WRITE YOUR CODE HERE
+        method_obj = LogisticRegression(args.lr, args.max_iters)
+        #arr = np.zeros(shape = (50,))
+#
+#
+        #for i in range(1,51):
+        #    for j in range(folds):
+        #        validate = LogisticRegression(i/100, args.max_iters)
+        #        validate.fit(xtrain_mul[j], ytrain_mul[j])
+        #        prediction = validate.predict(xval[j])
+        #        acc = accuracy_fn(prediction, yval[j])
+        #        arr[i-1] = arr[i-1] + acc
+        #    arr[i-1] = arr[i-1] / folds
+    #
+        #arr = np.zeros(shape = (101,))
+        #lr = (np.argmax(arr) + 1)/100
+        ### WRITE YOUR CODE HERE
         pass
 
     elif args.method == "kmeans":
-        method_obj = KMeans(args.max_iters)  ### WRITE YOUR CODE HERE
+        method_obj = KMeans(args.max_iters, args.k)  ### WRITE YOUR CODE HERE
         pass
 
     ## 4. Train and evaluate the method
     # Fit (:=train) the method on the training data for classification task
-    
+    s1 = time.time()
     preds_train = method_obj.fit(xtrain, ytrain)
 
     # Predict on unseen data
     preds = method_obj.predict(xtest)
+    s2 = time.time()
+    print("Function takes ", s2 - s1, "to fit and predict")
     #preds_val = method_obj.predict(xvalidation)
 
     # Report results: performance on train and valid/test sets
@@ -197,12 +208,15 @@ if __name__ == "__main__":
         "--data_type", default="features", type=str, help="features/original(MS2)"
     )
     parser.add_argument(
-        "--K", type=int, default=1, help="number of neighboring datapoints used for knn"
+        "--K", type=int, default=17, help="number of neighboring datapoints used for knn"
+    )
+    parser.add_argument(
+        "--k", type=int, default=35, help="number of neighboring datapoints used for knn"
     )
     parser.add_argument(
         "--lr",
         type=float,
-        default=1e-5,
+        default=1e-4,
         help="learning rate for methods with learning rate",
     )
     parser.add_argument(

@@ -29,9 +29,9 @@ class KNN(object):
         """
 
         self.training_data = training_data
-        self.training_labels = training_labels
-        self.number_of_classes = get_n_classes(training_labels)
-        self.weights = np.ones((self.number_of_classes,)) - (np.bincount(training_labels)/np.shape(training_labels)[0])
+        self.training_labels = np.astype(training_labels, int)
+        self.number_of_classes = get_n_classes(self.training_labels)
+        #self.weights = np.ones((self.number_of_classes,)) / (np.bincount(self.training_labels))#/np.shape(self.training_labels)[0])
 
         pred_labels = self.kNN(training_data)
 
@@ -86,8 +86,8 @@ class KNN(object):
             most frequent label
         """
         
-        weighted = np.multiply(np.bincount(neighbor_labels, minlength=self.number_of_classes), self.weights)
-        return np.argmax(weighted)
+        #weighted = np.multiply(np.bincount(neighbor_labels, minlength=self.number_of_classes), self.weights)
+        return np.argmax(np.bincount(neighbor_labels)) #np.argmax(weighted)
     
     def kNN_one_example(self, unlabeled_example):
         """Returns the label of a single unlabelled example.
