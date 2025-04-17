@@ -28,7 +28,6 @@ class KMeans(object):
             rows = data[cluster_assignments == i]
             if rows.size > 0:
                 self.centroids[i] = rows.mean(axis = 0)
-
         return self.centroids
 
     def k_means(self, data):
@@ -84,16 +83,7 @@ class KMeans(object):
             pred_labels (np.array): labels of shape (N,)
         """
         training_labels = np.astype(training_labels,int)
-        
-        #arr = np.zeros(shape = (training_data.shape[0],))
-        #for i in range(1, training_data.shape[0]+1):
-        #    final_centers, cluster_assignments = self.k_means(training_data, i)
-        #    self.assign_labels_to_centers(final_centers, cluster_assignments, training_labels)
-        #    pred_labels = KMeans.predict(self,training_data)
-        #    acc = 100*np.sum(np.equal(pred_labels, training_labels))/np.size(training_labels)
-        #    arr[i-1] = acc
-#
-        #K = np.argmax(arr) + 1
+    
         final_centers, cluster_assignments = self.k_means(training_data)
         self.assign_labels_to_centers(final_centers, cluster_assignments, training_labels)
         pred_labels = self.predict(training_data)
@@ -111,7 +101,6 @@ class KMeans(object):
         Returns:
             test_labels (np.array): labels of shape (N,)
         """
-       
         test_labels = np.zeros((np.shape(test_data)[0],))
         center_ass = KMeans.find_closest_cluster(self.compute_distance(test_data))
     
